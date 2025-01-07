@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -23,6 +24,8 @@ public class SaleService {
     @Autowired
     private SaleRepository repository;
 
+    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     public SaleMinDTO findById(Long id) {
         Optional<Sale> result = repository.findById(id);
         Sale entity = result.get();
@@ -30,27 +33,29 @@ public class SaleService {
     }
 
     public Page<ReportMinDTO> findReport(String minDate, String maxDate, String name, Pageable pageable) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
-        LocalDate minDateInLocalDate = today.minusYears(1);
-        LocalDate maxDateInLocalDate = today;
-        if (!minDate.isEmpty() || !maxDate.isEmpty()) {
-            minDateInLocalDate = LocalDate.parse(minDate, dtf);
-            maxDateInLocalDate = LocalDate.parse(maxDate, dtf);
-        }
-        Page<Sale> result = repository.searchReport(minDateInLocalDate,maxDateInLocalDate,name,pageable);
+        Map<String, LocalDate> dates = parseDates(minDate, maxDate);
+        Page<Sale> result = repository.searchReport(dates.get("minDate"), dates.get("maxDate"), name, pageable);
         return result.map(ReportMinDTO::new);
     }
 
     public List<SummaryMinDTO> findSummary(String minDate, String maxDate) {
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Map<String, LocalDate> dates = parseDates(minDate, maxDate);
+        return repository.searchSummary(dates.get("minDate"), dates.get("maxDate"));
+    }
+
+    private Map<String, LocalDate> parseDates(String minDate, String maxDate) {
         LocalDate today = LocalDate.ofInstant(Instant.now(), ZoneId.systemDefault());
         LocalDate minDateInLocalDate = today.minusYears(1);
         LocalDate maxDateInLocalDate = today;
+
         if (!minDate.isEmpty() || !maxDate.isEmpty()) {
-            minDateInLocalDate = LocalDate.parse(minDate, dtf);
-            maxDateInLocalDate = LocalDate.parse(maxDate, dtf);
+            if (!minDate.isEmpty()) {
+                minDateInLocalDate = LocalDate.parse(minDate, formatter);
+            }
+            if (!maxDate.isEmpty()) {
+                maxDateInLocalDate = LocalDate.parse(maxDate, formatter);
+            }
         }
-        return repository.searchSummary(minDateInLocalDate,maxDateInLocalDate);
+        return Map.of("minDate", minDateInLocalDate, "maxDate", maxDateInLocalDate);
     }
 }
