@@ -2,23 +2,23 @@ package com.devsuperior.dsmeta.dto;
 
 public class SummaryMinDTO {
 
-    private String name;
+    private String sellerName;
     private Double total;
 
     public SummaryMinDTO() {
     }
 
     public SummaryMinDTO(String name, Double total) {
-        this.name = name;
+        this.sellerName = name;
         this.total = total;
     }
 
-    public String getName() {
-        return name;
+    public String getSellerName() {
+        return sellerName;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setSellerName(String name) {
+        this.sellerName = name;
     }
 
     public Double getTotal() {
